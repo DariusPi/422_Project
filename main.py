@@ -84,10 +84,11 @@ def sysreliability(arr, bol):
             encoded = bitfield(index)
             while len(encoded) != len(arr):
                 encoded.insert(0, 0)
-            print(encoded)
-            for tes in encoded:
-                if tes == 1:
+            # print(encoded)
+            for tes in range(0, len(arr)):
+                if encoded[tes] == 1:
                     ntree.append(arr[tes])
+            # print(ntree)
             path = True
             for elem in range(1, len(city_list)):
                 vis = list()
@@ -96,6 +97,7 @@ def sysreliability(arr, bol):
                     break
             if path:
                 # multiply reliability of edges in ntree and 1 - reliability of edges not in ntree
+                # print("path found")
                 product = 1
                 for ed in arr:
                     if ed in ntree:
@@ -103,7 +105,6 @@ def sysreliability(arr, bol):
                     else:
                         product = product * (1 - ed.getReliability())
                 rel = rel + product
-
     return rel
 
 
