@@ -17,7 +17,7 @@ def findpath(arr, current, target, visited):
                 return True
             elif elem.vertice_2 not in visited:
                 suc = findpath(arr, elem.vertice_2, target, visited)
-                if suc == True:
+                if suc:
                     return True
                 else:
                     visited.remove(elem.vertice_2)
@@ -26,7 +26,7 @@ def findpath(arr, current, target, visited):
                 return True
             elif elem.vertice_1 not in visited:
                 suc = findpath(arr, elem.vertice_1, target, visited)
-                if suc == True:
+                if suc:
                     return True
                 else:
                     visited.remove(elem.vertice_1)
@@ -38,7 +38,6 @@ def partition(arr, low, high):
     pivot = arr[high].getReliability()  # pivot
 
     for j in range(low, high):
-
         if arr[j].getReliability() <= pivot:
             # increment index of smaller element
             i = i + 1
@@ -140,13 +139,52 @@ else:
     print(sysreliability(tree, 1))
     print(syscost(tree))
     print(sysreliability(tree, 0))
-    tree2 = list()
-    tree2.append(tree[0])
-    tree2.append(tree[1])
-    tree2.append(tree[2])
-    tree2.append(tree[3])
-    if (sysreliability(tree, 1) >= reliability_goal) and (syscost(tree) <= cost_constraint):
-        print("network found")
+    max_reliability = 0
+    max_network = list()
+    optimal_reliability = sysreliability(edge_list, 0)
+    optimal_cost = syscost(edge_list)
+    if reliability_goal > optimal_reliability:
+        print("No network possible to meet reliability constraint: ")
+    elif cost_constraint > optimal_cost:
+        print("Optimal network found: ")
+        print(edge_list)
+        print("reliability = ")
+        print(optimal_reliability)
+        print(" cost :")
+        print(optimal_cost)
     else:
-        gh = list()
-        print(findpath(tree2, city_list[0], city_list[4], gh))
+        first_found = False
+        for idx in range((2 ** (len(city_list)) - 1), 2 ** (len(edge_list))):
+            #print(idx)
+            gh = list()
+            encod = bitfield(idx)
+            if encod.count(1) >= 6:
+                while len(encod) != len(edge_list):
+                    encod.insert(0, 0)
+                for ts in range(0, len(edge_list)):
+                    if encod[ts] == 1:
+                        gh.append(edge_list[ts])
+                if first_found or syscost(gh) <= cost_constraint:
+                    temp_reliability = sysreliability(gh, 0)
+                    if not first_found:
+                        if temp_reliability >= reliability_goal:
+                            print("first network that meets goal found : ")
+                            print(gh)
+                            first_found = True
+                            if syscost(gh) <= cost_constraint:
+                                max_reliability = temp_reliability
+                                max_network = gh
+                    else:
+                        if (temp_reliability >= max_reliability) and (syscost(gh) <= cost_constraint):
+                            max_reliability = temp_reliability
+                            max_network = gh
+
+        if max_reliability == 0:
+            print("No suitable network found for cost constraint")
+        else:
+            print("Optimal network found: ")
+            print(max_network)
+            print("reliability = ")
+            print(max_reliability)
+            print(" cost :")
+            print(syscost(max_network))
