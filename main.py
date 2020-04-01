@@ -9,6 +9,18 @@ def bitfield(number):
     return [1 if digit == '1' else 0 for digit in bin(number)[2:]]
 
 
+def worsenetwork(current, goods):
+    for elem in goods:
+        match = True
+        for bit in range(0, len(current)):
+            if current[bit] == 1 and elem[bit] == 0:
+                match = False
+                break
+        if match:
+            return True
+    return False
+
+
 def findpath(arr, current, target, visited):
     visited.append(current)
     for elem in arr:
@@ -133,16 +145,22 @@ else:
     k = len(city_list)
     quicksort(edge_list, 0, n - 1)
     edge_list.reverse()
-    print(edge_list)
+    # print(edge_list)
     tree = minspan(edge_list, k)
     print(tree)
     print(sysreliability(tree, 1))
     print(syscost(tree))
-    print(sysreliability(tree, 0))
+    # print(sysreliability(tree, 0))
     max_reliability = 0
     max_network = list()
+    max_network_index = 0
     optimal_reliability = sysreliability(edge_list, 0)
     optimal_cost = syscost(edge_list)
+    print("maximum reliability: ")
+    print(optimal_reliability)
+    print("maximum cost: ")
+    print(optimal_cost)
+    found_list = list()
     if reliability_goal > optimal_reliability:
         print("No network possible to meet reliability constraint: ")
     elif cost_constraint > optimal_cost:
@@ -153,9 +171,9 @@ else:
         print(" cost :")
         print(optimal_cost)
     else:
+        edge_list.reverse()
         first_found = False
-        for idx in range((2 ** (len(city_list)) - 1), 2 ** (len(edge_list))):
-            #print(idx)
+        for idx in range(2 ** (len(edge_list)), (2 ** (len(city_list)) - 1), -1):
             gh = list()
             encod = bitfield(idx)
             if encod.count(1) >= 6:
@@ -164,25 +182,34 @@ else:
                 for ts in range(0, len(edge_list)):
                     if encod[ts] == 1:
                         gh.append(edge_list[ts])
-                if first_found or syscost(gh) <= cost_constraint:
-                    temp_reliability = sysreliability(gh, 0)
-                    if not first_found:
-                        if temp_reliability >= reliability_goal:
-                            print("first network that meets goal found : ")
-                            print(gh)
-                            first_found = True
-                            if syscost(gh) <= cost_constraint:
+                if (not first_found) or syscost(gh) <= cost_constraint:
+                    if not worsenetwork(encod, found_list):
+                        temp_reliability = sysreliability(gh, 0)
+                        if not first_found:
+                            if temp_reliability >= reliability_goal:
+                                print("first network that meets reliability goal found : ")
+                                print(gh)
+                                first_found = True
+                                if syscost(gh) <= cost_constraint:
+                                    max_reliability = temp_reliability
+                                    max_network_index = idx
+                                    found_list.append(encod)
+                        else:
+                            found_list.append(encod)
+                            if temp_reliability >= max_reliability:
                                 max_reliability = temp_reliability
-                                max_network = gh
-                    else:
-                        if (temp_reliability >= max_reliability) and (syscost(gh) <= cost_constraint):
-                            max_reliability = temp_reliability
-                            max_network = gh
+                                max_network_index = idx
 
         if max_reliability == 0:
             print("No suitable network found for cost constraint")
         else:
             print("Optimal network found: ")
+            encode = bitfield(max_network_index)
+            while len(encode) != len(edge_list):
+                encode.insert(0, 0)
+            for ts in range(0, len(edge_list)):
+                if encode[ts] == 1:
+                    max_network.append(edge_list[ts])
             print(max_network)
             print("reliability = ")
             print(max_reliability)
